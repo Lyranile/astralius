@@ -6,11 +6,10 @@ COPY build_scripts /build_scripts
 COPY system_files /system_files
 
 # Base Image (GNOME / Silverblue)
-ARG BASE_IMAGE=ghcr.io/ublue-os/silverblue-main:latest
-FROM ${BASE_IMAGE} AS base
+FROM ghcr.io/ublue-os/silverblue-main:latest AS base
 
 ARG IMAGE_NAME=astralius
-ARG IMAGE_VENDOR=Lyranile
+ARG IMAGE_VENDOR=lyranile
 ARG FEDORA_MAJOR_VERSION=
 ARG UBLUE_IMAGE_TAG=latest
 ARG VERSION=00.00000000

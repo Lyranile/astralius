@@ -3,7 +3,7 @@ contents = """
 # Astralius (GNOME) live ISO kickstart
 %post
 set -ouex pipefail
-bootc switch --mutate-in-place --transport registry ghcr.io/Lyranile/astralius:latest
+bootc switch --mutate-in-place --transport registry ghcr.io/lyranile/astralius:latest
 %end
 
 %post --erroronfail --nochroot
