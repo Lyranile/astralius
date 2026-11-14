@@ -1,45 +1,64 @@
 # Allow build scripts to be referenced without being copied into the final image
+FROM ghcr.io/ublue-os/brew:latest AS brew
+
 FROM scratch AS ctx
-COPY build_files /
+COPY build_scripts /build_scripts
 COPY system_files /system_files
 
-# Base Image
-FROM ghcr.io/ublue-os/silverblue-main:latest
-## Other possible base images include:
-# FROM ghcr.io/ublue-os/silverblue-main:44
-# FROM ghcr.io/ublue-os/bazzite:stable
-# FROM ghcr.io/ublue-os/aurora:stable
-# FROM ghcr.io/ublue-os/bluefin-nvidia-open:stable
-#
-# ... and so on, here are more base images
-# Universal Blue Images: https://github.com/orgs/ublue-os/packages
-# Fedora base image: quay.io/fedora/fedora-bootc:44
-# CentOS base images: quay.io/centos-bootc/centos-bootc:stream10
-#
-# NVIDIA is installed in build.sh from akmods-nvidia-open (open drivers),
-# mirroring the ublue-os/main / Bluefin approach.
+# Base Image (GNOME / Silverblue)
+FROM ghcr.io/ublue-os/silverblue-main:latest AS base
 
-### [IM]MUTABLE /opt
-## Some bootable images, like Fedora, have /opt symlinked to /var/opt, in order to
-## make it mutable/writable for users. However, some packages write files to this directory,
-## thus its contents might be wiped out when bootc deploys an image, making it troublesome for
-## some packages. Eg, google-chrome, docker-desktop.
-##
-## Uncomment the following line if one desires to make /opt immutable and be able to be used
-## by the package manager.
+ARG IMAGE_NAME=astralius
+ARG IMAGE_VENDOR=lyranile
+ARG FEDORA_MAJOR_VERSION=
+ARG UBLUE_IMAGE_TAG=latest
+ARG VERSION=00.00000000
+ARG SHA_HEAD_SHORT=
+ARG NVIDIA=false
 
-# RUN rm /opt && mkdir /opt
+ENV IMAGE_NAME=${IMAGE_NAME}
+ENV IMAGE_VENDOR=${IMAGE_VENDOR}
+ENV FEDORA_MAJOR_VERSION=${FEDORA_MAJOR_VERSION}
+ENV UBLUE_IMAGE_TAG=${UBLUE_IMAGE_TAG}
+ENV VERSION=${VERSION}
+ENV SHA_HEAD_SHORT=${SHA_HEAD_SHORT}
+ENV NVIDIA=${NVIDIA}
+ENV BASE_IMAGE_NAME=silverblue-main
 
-### MODIFICATIONS
-## make modifications desired in your image and install packages by modifying the build.sh script
-## the following RUN directive does all the things required to run "build.sh" as recommended.
+# Make helper scripts available
+ENV PATH="/tmp/scripts/helpers:${PATH}"
 
-RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
-    --mount=type=cache,dst=/var/cache \
-    --mount=type=cache,dst=/var/log \
-    --mount=type=tmpfs,dst=/tmp \
-    /ctx/build.sh
+### MODIFICATIONS - networked stage
+RUN --mount=type=tmpfs,dst=/boot \
+    --mount=type=tmpfs,dst=/var \
+    --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=cache,dst=/var/cache/libdnf5 \
+    /ctx/build_scripts/shared/build-prep.sh && \
+    /ctx/build_scripts/base/01-packages.sh
 
-### LINTING
-## Verify final image and contents are correct.
+# Bring in Homebrew (ublue-os/brew)
+COPY --from=brew /system_files /system_files
+
+# NVIDIA (conditional)
+RUN --mount=type=tmpfs,dst=/boot \
+    --mount=type=tmpfs,dst=/var \
+    --mount=type=bind,from=ctx,source=/,target=/ctx \
+    --mount=type=cache,dst=/var/cache/libdnf5 \
+    bash -c 'if [[ "${NVIDIA}" == "true" ]]; then /ctx/build_scripts/base/04-nvidia.sh; else echo "Skipping NVIDIA"; fi'
+
+### Offline stage
+RUN --network=none \
+    --mount=type=tmpfs,dst=/boot \
+    --mount=type=tmpfs,dst=/var/log \
+    --mount=type=bind,from=ctx,source=/,target=/ctx \
+    /ctx/build_scripts/base/16-override-install.sh && \
+    /ctx/build_scripts/base/17-services.sh && \
+    /ctx/build_scripts/base/18-image-info.sh && \
+    /ctx/build_scripts/base/19-initramfs.sh && \
+    /ctx/build_scripts/shared/clean-stage.sh && \
+    /ctx/build_scripts/shared/unpackaged.sh && \
+    /ctx/build_scripts/base/20-tests.sh
+
+CMD ["/sbin/init"]
+
 RUN bootc container lint

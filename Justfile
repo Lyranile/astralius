@@ -1,13 +1,13 @@
 set dotenv-filename := "image-template.env"
 set dotenv-load
 
-export image_name := env_var("IMAGE_NAME")
-export repo_organization := env_var("REPO_ORGANIZATION")
-export image_desc := env_var("IMAGE_DESC")
-export image_keywords := env_var("IMAGE_KEYWORDS")
-export image_logo_url := env_var("IMAGE_LOGO_URL")
-export default_tag := env_var("DEFAULT_TAG")
-export bib_image := env_var("BIB_IMAGE")
+export image_name := env("IMAGE_NAME")
+export repo_organization := env("REPO_ORGANIZATION")
+export image_desc := env("IMAGE_DESC")
+export image_keywords := env("IMAGE_KEYWORDS")
+export image_logo_url := env("IMAGE_LOGO_URL")
+export default_tag := env("DEFAULT_TAG")
+export bib_image := env("BIB_IMAGE")
 
 alias build-vm := build-qcow2
 alias rebuild-vm := rebuild-qcow2
@@ -99,6 +99,9 @@ build $target_image=image_name $tag=default_tag:
     set -euox pipefail
 
     BUILD_ARGS=()
+    if [[ "${NVIDIA:-false}" == "true" ]]; then
+        BUILD_ARGS+=("--build-arg" "NVIDIA=true")
+    fi
     LABELS=()
     if [[ -z "$(git status -s)" ]]; then
         GIT_SHA=$(git rev-parse --short HEAD)

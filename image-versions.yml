@@ -1,0 +1,5 @@
+---
+# Base image and akmods versions tracked for Astralius
+base-image: ghcr.io/ublue-os/silverblue-main:latest
+akmods-flavor: main
+brew-image: ghcr.io/ublue-os/brew:latest
