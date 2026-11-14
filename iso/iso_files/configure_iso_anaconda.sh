@@ -3,13 +3,13 @@
 set -eoux pipefail
 
 if [[ -n "${BASE_IMAGE:-}" ]]; then
-    IMAGE_REF="${BASE_IMAGE%%:*}"
-    IMAGE_TAG="${BASE_IMAGE##*:}"
+	IMAGE_REF="${BASE_IMAGE%%:*}"
+	IMAGE_TAG="${BASE_IMAGE##*:}"
 else
-    IMAGE_INFO="$(cat /usr/share/ublue-os/image-info.json)"
-    IMAGE_TAG="$(jq -c -r '."image-tag"' <<<"$IMAGE_INFO")"
-    IMAGE_REF="$(jq -c -r '."image-ref"' <<<"$IMAGE_INFO")"
-    IMAGE_REF="${IMAGE_REF##*://}"
+	IMAGE_INFO="$(cat /usr/share/ublue-os/image-info.json)"
+	IMAGE_TAG="$(jq -c -r '."image-tag"' <<<"$IMAGE_INFO")"
+	IMAGE_REF="$(jq -c -r '."image-ref"' <<<"$IMAGE_INFO")"
+	IMAGE_REF="${IMAGE_REF##*://}"
 fi
 
 sed -i 's/ANACONDA_PRODUCTVERSION=.*/ANACONDA_PRODUCTVERSION=""/' /usr/{,s}bin/liveinst || true
@@ -52,9 +52,9 @@ hidden_webui_pages =
 EOF
 
 desktop-file-edit \
-    --set-key=Icon --set-value=/usr/share/icons/hicolor/scalable/apps/org.gnome.Settings.svg \
-    --set-key=StartupWMClass --set-value=slitherer \
-    /usr/share/applications/liveinst.desktop 2>/dev/null || true
+	--set-key=Icon --set-value=/usr/share/icons/hicolor/scalable/apps/org.gnome.Settings.svg \
+	--set-key=StartupWMClass --set-value=slitherer \
+	/usr/share/applications/liveinst.desktop 2>/dev/null || true
 
 tee -a /usr/share/anaconda/interactive-defaults.ks <<EOF
 ostreecontainer --url=$IMAGE_REF:$IMAGE_TAG --transport=containers-storage --no-signature-verification

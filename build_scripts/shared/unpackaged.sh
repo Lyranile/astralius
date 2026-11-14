@@ -6,21 +6,21 @@ set -eoux pipefail
 
 HOMEBREW_TARBALL=/usr/share/homebrew.tar.zst
 if [[ -f "${HOMEBREW_TARBALL}" ]]; then
-    setfattr -n user.component -v "homebrew" "${HOMEBREW_TARBALL}" || true
+	setfattr -n user.component -v "homebrew" "${HOMEBREW_TARBALL}" || true
 fi
 
 # rpm-ostree tmpfiles
 RPM_OSTREE_TMPFILES=/usr/lib/rpm-ostree/tmpfiles.d
 if [[ -d "${RPM_OSTREE_TMPFILES}" ]]; then
-    setfattr -n user.component -v "rpm-ostree-tmpfiles.d" "${RPM_OSTREE_TMPFILES}" || true
-    setfattr -n user.update-interval -v "quarterly" "${RPM_OSTREE_TMPFILES}" || true
+	setfattr -n user.component -v "rpm-ostree-tmpfiles.d" "${RPM_OSTREE_TMPFILES}" || true
+	setfattr -n user.update-interval -v "quarterly" "${RPM_OSTREE_TMPFILES}" || true
 fi
 
 # fontconfig cache
 FONTCONFIG_CACHE=/usr/lib/fontconfig/cache
 if [[ -d "${FONTCONFIG_CACHE}" ]]; then
-    setfattr -n user.component -v "fontconfig-cache" "${FONTCONFIG_CACHE}" || true
-    setfattr -n user.update-interval -v "daily" "${FONTCONFIG_CACHE}" || true
+	setfattr -n user.component -v "fontconfig-cache" "${FONTCONFIG_CACHE}" || true
+	setfattr -n user.update-interval -v "daily" "${FONTCONFIG_CACHE}" || true
 fi
 
 # normalize timestamps
